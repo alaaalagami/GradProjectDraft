@@ -1,0 +1,39 @@
+﻿I'm sorry, but an uncaught exception occurred.
+
+While running game code:
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "game/script.rpy", line 10, in <module>
+    from multiprocessing.connection import Client
+SyntaxError: invalid syntax (context.py, line 132)
+
+-- Full Traceback ------------------------------------------------------------
+
+Full traceback:
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/bootstrap.py", line 331, in bootstrap
+    renpy.main.main()
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/main.py", line 560, in main
+    renpy.game.context().run(node)
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/ast.py", line 928, in execute
+    renpy.python.py_exec_bytecode(self.code.bytecode, self.hide, store=self.store)
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/python.py", line 2245, in py_exec_bytecode
+    exec(bytecode, globals, locals)
+  File "game/script.rpy", line 10, in <module>
+    from multiprocessing.connection import Client
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/loader.py", line 985, in load_module
+    exec(code, mod.__dict__)
+  File "python-packages/multiprocessing/__init__.py", line 16, in <module>
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/loader.py", line 979, in load_module
+    code = compile(source, filename, 'exec', renpy.python.old_compile_flags, 1)
+SyntaxError: invalid syntax (context.py, line 132)
+
+Linux-5.4.0-100-generic-x86_64-with-debian-bullseye-sid
+Ren'Py 7.4.11.2266
+RenPyTest 1.0
+Sun Mar  6 11:56:41 2022
