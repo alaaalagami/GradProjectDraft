@@ -18,7 +18,7 @@ async def start(websocket):
     game = ExperienceManager()
     connected = {websocket}
 
-    join_key = "".join(random.choice(string.ascii_letters) for _ in range(4))
+    join_key = "".join(random.choice(string.ascii_letters) for _ in range(4)).upper()
 
     JOIN[join_key] = game, connected
 

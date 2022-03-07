@@ -5,9 +5,9 @@ While running game code:
     init python:
   File "game/script.rpy", line 6, in script
     init python:
-  File "game/script.rpy", line 9, in <module>
-    import websockets
-ImportError: No module named websockets
+  File "game/script.rpy", line 15, in <module>
+    client_socket.connect(client_address)
+error: [Errno 111] Connection refused
 
 -- Full Traceback ------------------------------------------------------------
 
@@ -24,11 +24,12 @@ Full traceback:
     renpy.python.py_exec_bytecode(self.code.bytecode, self.hide, store=self.store)
   File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/python.py", line 2245, in py_exec_bytecode
     exec(bytecode, globals, locals)
-  File "game/script.rpy", line 9, in <module>
-    import websockets
-ImportError: No module named websockets
+  File "game/script.rpy", line 15, in <module>
+    client_socket.connect(client_address)
+  File "/home/tom/ab/renpy-build/tmp/install.linux-x86_64/lib/python2.7/socket.py", line 228, in meth
+error: [Errno 111] Connection refused
 
 Linux-5.4.0-100-generic-x86_64-with-debian-bullseye-sid
 Ren'Py 7.4.11.2266
 RenPyTest 1.0
-Mon Mar  7 22:14:12 2022
+Tue Mar  8 00:18:50 2022

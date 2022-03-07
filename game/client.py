@@ -2,9 +2,11 @@
 
 import asyncio
 import websockets
-from multiprocessing.connection import Listener, Client
+# from multiprocessing.connection import Listener, Client
+import socket
 import enum
 import json
+import os
 
 # This is the state of the client relative to RenPy
 class State(enum.Enum):
@@ -21,14 +23,22 @@ class WebClient():
 
     def __init__(self, uri, renpy_address):
         self.uri = uri
-        self.to_renpy_address = renpy_address
-        self.from_renpy_address = (renpy_address[0], renpy_address[1]+2000)
+        self.renpy_socket = None
+        self.renpy_address = renpy_address
         self.websocket = None
         self.state = State.Send
+
     
     async def _connect(self):
+        os.system('fuser -k 5000/tcp')
         self.websocket = await websockets.connect(self.uri)
-        print("connected")
+        print("connected to web server")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(self.renpy_address)
+        s.listen()
+        self.renpy_socket, _ = s.accept()
+        print("connected to renpy")
+        
 
     async def send_to_server(self, message):
         await self.websocket.send(message)
@@ -38,16 +48,11 @@ class WebClient():
         return message
     
     def send_to_renpy(self, message):
-        renpy_client = Client(self.to_renpy_address, authkey=b'momo')
-        renpy_client.send(message)
-        renpy_client.close()
+        self.renpy_socket.sendall(message.encode('utf-8'))
 
     def recv_from_renpy(self):
-        renpy_listener = Listener(self.from_renpy_address, authkey=b'momo')
-        conn = renpy_listener.accept()
-        message = conn.recv()
-        conn.close()
-        return message
+        message = self.renpy_socket.recv(1024)
+        return message.decode('utf-8')
     
     async def close(self):
         await self.websocket.close()
@@ -75,6 +80,7 @@ async def main():
     print('lets login player 1')
     await myclient.first_player_login()
     print('logged in player 1')
+    await myclient.close()
 
 #    while True:
 #        current_state = myclient.get_state()

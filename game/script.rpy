@@ -9,19 +9,20 @@ init python:
     import socket
 
     cwd =  '../RenPyTest' # os.getcwd()
-    next_file_path = cwd + '/game/info/next_scene.txt'
-    choice_file_path = cwd + '/game/info/choice.txt'
-    join_file_path = cwd + '/game/info/join_key.txt'
 
-    def start_client():
-        subprocess.call('python3 ' + cwd + '/game/client.py', shell=True)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_address = ('localhost', 5000)
+    client_socket.connect(client_address)
+
+#    def start_client():
+#        subprocess.call('python3 ' + cwd + '/game/client.py', shell=True)
 
     def send_to_server(message):
-        subprocess.call('python3 ' + cwd + '/game/out_channel.py \"'+message+'\"', shell=True)
+        client_socket.sendall(message.encode('utf-8'))
 
     def recv_from_server():
-        message = subprocess.check_output('python3 ' + cwd + '/game/in_channel.py', shell=True)
-        return message.decode('utf-8')[:-1]
+        message = client_socket.recv(1024)
+        return message.decode('utf-8')
     
     def host_new_game():
         send_to_server('host')
@@ -41,7 +42,7 @@ menu login:
     "Host": 
         python:
             host_new_game()
-            narrator("Waiting for server to send join key")
+            narrator("Waiting for server to send join key", interact=False)
             join_key = get_join_key()
             narrator("Your join key is "+join_key)
 
