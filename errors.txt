@@ -2,13 +2,10 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 28: expected statement.
-    send_to_server('Host')
-                          ^
-
-File "game/script.rpy", line 31: expected statement.
-    send_to_server('Join')
-                          ^
+File "game/script.rpy", line 48: invalid syntax
+    jump host
+             ^
+    
 
 Ren'Py Version: Ren'Py 7.4.11.2266
-Mon Mar  7 17:25:10 2022
+Mon Mar  7 21:12:45 2022
