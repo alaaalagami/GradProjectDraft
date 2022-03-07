@@ -6,8 +6,8 @@ While running game code:
   File "game/script.rpy", line 6, in script
     init python:
   File "game/script.rpy", line 10, in <module>
-    from multiprocessing.connection import Client
-SyntaxError: invalid syntax (context.py, line 132)
+    out = check_output(["ntpq", "-p"])
+OSError: [Errno 2] No such file or directory
 
 -- Full Traceback ------------------------------------------------------------
 
@@ -25,15 +25,13 @@ Full traceback:
   File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/python.py", line 2245, in py_exec_bytecode
     exec(bytecode, globals, locals)
   File "game/script.rpy", line 10, in <module>
-    from multiprocessing.connection import Client
-  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/loader.py", line 985, in load_module
-    exec(code, mod.__dict__)
-  File "python-packages/multiprocessing/__init__.py", line 16, in <module>
-  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/loader.py", line 979, in load_module
-    code = compile(source, filename, 'exec', renpy.python.old_compile_flags, 1)
-SyntaxError: invalid syntax (context.py, line 132)
+    out = check_output(["ntpq", "-p"])
+  File "/home/tom/ab/renpy-build/tmp/install.linux-x86_64/lib/python2.7/subprocess.py", line 217, in check_output
+  File "/home/tom/ab/renpy-build/tmp/install.linux-x86_64/lib/python2.7/subprocess.py", line 325, in __init__
+  File "/home/tom/ab/renpy-build/tmp/install.linux-x86_64/lib/python2.7/subprocess.py", line 978, in _execute_child
+OSError: [Errno 2] No such file or directory
 
 Linux-5.4.0-100-generic-x86_64-with-debian-bullseye-sid
 Ren'Py 7.4.11.2266
 RenPyTest 1.0
-Sun Mar  6 11:56:41 2022
+Mon Mar  7 19:09:00 2022

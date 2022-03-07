@@ -11,13 +11,16 @@ init python:
     next_file_path = cwd + '/game/info/next_scene.txt'
     choice_file_path = cwd + '/game/info/choice.txt'
     join_file_path = cwd + '/game/info/join_key.txt'
-    
+
     def send_to_server(message):
         subprocess.call('python3 ' + cwd + '/game/out_channel.py '+message, shell=True)
-    
-    send_to_server('hello_again')
 
-#    def recv_from_server():
+    def recv_from_server():
+        message = subprocess.check_output('python3 ' + cwd + '/game/in_channel.py', shell=True)
+        return message.decode('utf-8')[:-1]
+    
+    send_to_server('hello')
+
 
 label start:
     jump login
@@ -25,8 +28,11 @@ label start:
 menu login:
     "Do you want to host a new game or join an already-existing one?"
     "Host": 
+#        $ send_to_server('Host')
+        $ narrator(recv_from_server())
         jump host
     "Join": 
+        $ send_to_server('Join')
         jump join
 
 label host:

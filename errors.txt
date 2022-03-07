@@ -2,10 +2,13 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 15: invalid syntax
-    async def main():
-             ^
-    
+File "game/script.rpy", line 28: expected statement.
+    send_to_server('Host')
+                          ^
+
+File "game/script.rpy", line 31: expected statement.
+    send_to_server('Join')
+                          ^
 
 Ren'Py Version: Ren'Py 7.4.11.2266
-Sun Mar  6 10:36:10 2022
+Mon Mar  7 17:25:10 2022

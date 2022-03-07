@@ -5,14 +5,10 @@ import websockets
 from multiprocessing.connection import Listener, Client
 import enum
 
-from_renpy_address = ('localhost', 6000)
-to_renpy_address = ('localhost', 5000)
-renpy_listener = Listener(from_renpy_address, authkey=b'momo')
-#renpy_client = Client(to_renpy_address, authkey=b'momo')
+renpy_address = ('localhost', 6000)
 
 async def create_webclient(uri):
     client = WebClient(uri)
-    await client._connect()
     return client
 
 # This is the state of the client relative to RenPy
@@ -26,19 +22,22 @@ class WebClient():
     def __init__(self, uri):
         self.uri = uri
         self.websocket = None
-        self.state = State.Listen
+        self.state = State.Send
     
     async def _connect(self):
         self.websocket = await websockets.connect(self.uri)
         print("connected")
 
     async def send_message(self, message):
+        await self._connect()
         await self.websocket.send(message)
         await self.recv_message()
-    
+
     async def recv_message(self):
+        await self._connect()
         message = await self.websocket.recv()
         print('received', message)
+        return message
     
     async def close(self):
         await self.websocket.close()
@@ -56,18 +55,26 @@ async def main():
     while True:
         current_state = myclient.get_state()
         if current_state == State.Listen:
-            print(current_state)
+            renpy_listener = Listener(renpy_address, authkey=b'momo')
             conn = renpy_listener.accept()
             print('connection accepted from', renpy_listener.last_accepted)
             msg = conn.recv()
             await myclient.send_message(msg)
             conn.close()
-            myclient.make_idle()
+            await myclient.close()
 
-        
-    await myclient.close()
+        elif current_state == State.Send:
+            renpy_client = Client(renpy_address, authkey=b'momo')
+            message = await myclient.recv_message()
+            renpy_client.send(message)
+            renpy_client.close()
+            await myclient.close()
+            
 
-    renpy_listener.close()
 
+
+
+
+    
 
 asyncio.run(main())
