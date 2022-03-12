@@ -7,15 +7,15 @@ init python:
     import os
     import subprocess
     import socket
+    import time
+    import json
 
     cwd =  '../RenPyTest' # os.getcwd()
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_address = ('localhost', 5000)
-    client_socket.connect(client_address)
-
-#    def start_client():
-#        subprocess.call('python3 ' + cwd + '/game/client.py', shell=True)
+    def start_client():
+        subprocess.Popen(['python3', cwd + '/game/client.py'], 
+                                    stdout=subprocess.PIPE, 
+                                    stderr=subprocess.STDOUT)
 
     def send_to_server(message):
         client_socket.sendall(message.encode('utf-8'))
@@ -23,16 +23,29 @@ init python:
     def recv_from_server():
         message = client_socket.recv(1024)
         return message.decode('utf-8')
-    
-    def host_new_game():
-        send_to_server('host')
+        
     
     def get_join_key():
         key = recv_from_server()
         assert len(key) == 4
         return key
-
+    
+    def send_choice(choice):
+        event = {'type': 'choice', 'pick': choice}
+        send_to_server(json.dumps(event))
+    
+    def get_next_scene():
+        event = {'type': 'show_request'}
+        send_to_server(json.dumps(event))
+        scene = recv_from_server()
+        return scene
+    
 #    start_client()
+#    time.sleep(2)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_address = ('localhost', 5000)
+    client_socket.connect(client_address)
+
 
 label start:
     jump login
@@ -41,35 +54,52 @@ menu login:
     "Do you want to host a new game or join an already-existing one?"
     "Host": 
         python:
-            host_new_game()
+            send_to_server('host')
             narrator("Waiting for server to send join key", interact=False)
             join_key = get_join_key()
             narrator("Your join key is "+join_key)
+            narrator("Waiting for other player to join", interact=False)
+            signal = recv_from_server()
+            assert signal == 'pick'
+            narrator("Other player joined!")
 
-        jump host
+        jump pickRole
+
     "Join": 
-        $ send_to_server('Join')
-        jump join
-
-label host:
-    "Host"
-
-label join:
-    "Join"
+        python:
+            send_to_server('join')
+            join_key = renpy.input('Please enter the join key: ', length=4)
+            narrator("Joining game...", interact=False)
+            send_to_server(join_key)
+            signal = recv_from_server()
+            assert signal == 'pick'
+            "Joined Successfully!"
+            
+        jump pickRole
 
 menu pickRole:
     "Pick a role!"
     "I want to control how Moemen feels.":
-        jump controller
+       python:
+        send_to_server('controller')
+        signal = recv_from_server()
+        assert signal == 'start'
+
+       jump controller
+
     "I want to perceive how Moemen feels.":
-        jump perceiver
+       python:
+        send_to_server('perceiver')
+        signal = recv_from_server()
+        assert signal == 'start'
+
+       jump perceiver
 
 label controller:
     python:
         narrator("How do you want Moemen to feel?", interact=False)
         mood = renpy.display_menu([("Happy", "happy"), ("Sad", "sad")])
-        with open(next_file_path, 'w') as next_file:
-            next_file.write(mood)
+        send_choice(mood)
         narrator("Moemen is now "+mood+"!")
         renpy.jump("controller")
     
@@ -77,7 +107,6 @@ label perceiver:
     scene bg whitehouse
     show moemen main at left
     moemen "Hi I am Moemen"
-    moemen "Let's see how I am feeling!"
     jump next
 
 label sad:
@@ -91,6 +120,5 @@ label happy:
 label next:
     moemen "Let's see how I am feeling!"
     python:
-        with open(next_file_path, 'r') as next_file:
-            next_scene = next_file.read().strip()
+        next_scene = get_next_scene()
         renpy.jump(next_scene)

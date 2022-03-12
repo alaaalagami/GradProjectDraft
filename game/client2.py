@@ -22,7 +22,7 @@ class WebClient():
 
     
     async def _connect(self):
-        os.system('fuser -k 5000/tcp')
+        os.system('fuser -k 6000/tcp')
         self.websocket = await websockets.connect(self.uri, ping_interval = None)
         print("connected to web server")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -84,7 +84,7 @@ class WebClient():
 
 
 async def main():
-    renpy_address = ('localhost', 5000)
+    renpy_address = ('localhost', 6000)
     uri = "ws://localhost:8765"  # "wss://testing-multiplayer-gradproj.herokuapp.com"
     myclient = await create_webclient(uri, renpy_address)
 
