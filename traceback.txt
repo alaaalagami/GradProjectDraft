@@ -1,28 +1,35 @@
 ﻿I'm sorry, but an uncaught exception occurred.
 
 While running game code:
-  File "game/script.rpy", line 122, in script
-    python:
-ScriptError: could not find label ''.
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "game/script.rpy", line 58, in <module>
+    client_socket.connect(client_address)
+error: [Errno 111] Connection refused
 
 -- Full Traceback ------------------------------------------------------------
 
 Full traceback:
   File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/bootstrap.py", line 331, in bootstrap
     renpy.main.main()
-  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/main.py", line 662, in main
-    run(restart)
-  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/main.py", line 148, in run
-    renpy.execution.run_context(True)
-  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/execution.py", line 922, in run_context
-    context.run()
-  File "game/script.rpy", line 122, in script
-    python:
-  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/script.py", line 918, in lookup
-    raise ScriptError("could not find label '%s'." % str(original))
-ScriptError: could not find label ''.
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/main.py", line 560, in main
+    renpy.game.context().run(node)
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "game/script.rpy", line 6, in script
+    init python:
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/ast.py", line 928, in execute
+    renpy.python.py_exec_bytecode(self.code.bytecode, self.hide, store=self.store)
+  File "/home/moemen/gradproj/RenPy/renpy-7.4.11-sdk/renpy/python.py", line 2245, in py_exec_bytecode
+    exec(bytecode, globals, locals)
+  File "game/script.rpy", line 58, in <module>
+    client_socket.connect(client_address)
+  File "/home/tom/ab/renpy-build/tmp/install.linux-x86_64/lib/python2.7/socket.py", line 228, in meth
+error: [Errno 111] Connection refused
 
-Linux-5.4.0-100-generic-x86_64-with-debian-bullseye-sid
+Linux-5.4.0-104-generic-x86_64-with-debian-bullseye-sid
 Ren'Py 7.4.11.2266
 RenPyTest 1.0
-Sat Mar 12 22:02:26 2022
+Mon Mar 14 22:42:25 2022

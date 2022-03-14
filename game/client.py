@@ -5,6 +5,7 @@ import websockets
 import socket
 import json
 import os
+import sys
 
 
 async def create_webclient(uri, renpy_address):
@@ -22,7 +23,6 @@ class WebClient():
 
     
     async def _connect(self):
-        os.system('fuser -k 5000/tcp')
         self.websocket = await websockets.connect(self.uri, ping_interval = None)
         print("connected to web server")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -84,7 +84,8 @@ class WebClient():
 
 
 async def main():
-    renpy_address = ('localhost', 5000)
+    port = int(sys.argv[1])
+    renpy_address = ('localhost', port)
     uri = "wss://experience-manager-grad-proj.herokuapp.com/" # "ws://localhost:8765"
     myclient = await create_webclient(uri, renpy_address)
 

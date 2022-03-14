@@ -12,10 +12,9 @@ init python:
 
     cwd =  '../RenPyTest' # os.getcwd()
 
-    def start_client():
-        subprocess.Popen(['python3', cwd + '/game/client.py'], 
-                                    stdout=subprocess.PIPE, 
-                                    stderr=subprocess.STDOUT)
+    def start_client(port):
+        subprocess.Popen(['python', cwd + '/game/client.py', str(port)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
 
     def send_to_server(message):
         client_socket.sendall(message.encode('utf-8'))
@@ -40,11 +39,20 @@ init python:
         scene = recv_from_server()
         return scene
     
-#    start_client()
-#    time.sleep(2)
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_address = ('localhost', 5000)
-    client_socket.connect(client_address)
+    try:
+        port = 5000
+        start_client(port)
+        time.sleep(2)
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_address = ('localhost', port)
+        client_socket.connect(client_address)
+    except:
+        port = 6000
+        start_client(port)
+        time.sleep(2)
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_address = ('localhost', port)
+        client_socket.connect(client_address)
 
 
 label start:
@@ -56,9 +64,11 @@ menu login:
         python:
             send_to_server('host')
             narrator("Waiting for server to send join key", interact=False)
+            renpy.pause(0.1, hard=True)
             join_key = get_join_key()
             narrator("Your join key is "+join_key)
-            narrator("Waiting for other player to join", interact=False)
+            narrator("Waiting for other player to join...", interact=False)
+            renpy.pause(0.1, hard=True)
             signal = recv_from_server()
             assert signal == 'pick'
             narrator("Other player joined!")
@@ -70,10 +80,11 @@ menu login:
             send_to_server('join')
             join_key = renpy.input('Please enter the join key: ', length=4)
             narrator("Joining game...", interact=False)
+            renpy.pause(0.1, hard=True)
             send_to_server(join_key)
             signal = recv_from_server()
             assert signal == 'pick'
-            "Joined Successfully!"
+            narrator("Joined Successfully!")
             
         jump pickRole
 
