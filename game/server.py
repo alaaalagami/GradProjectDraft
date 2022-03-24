@@ -22,36 +22,37 @@ async def error(websocket, message):
 async def play(websocket, game, connected, player):
     async for message in websocket:
         event = json.loads(message)
+        print("Server received", event)
         type = event['type']
 
         if type == 'role':
             role = event['pick']
             game.set_player_role(player, role)
             if game.all_players_assigned():
-                event = {"type": "show","label": "first_scene"}
-                websockets.broadcast(connected, json.dumps(event))
+                for player in range(len(connected)):
+                    first_scene = game.get_first_scene(player)
+                    event = {"type": "show", "label": first_scene}
+                    print(connected[player])
+                    await connected[player].send(json.dumps(event))
 
         elif type == 'choice':
-            choice = event['pick']
-            game.update_state(choice)
-            print('Updated state to', choice)
+            game.apply_choice_postconditions(label = event['label'], menu_label = event['menu_label'], choice = event['choice'])
 
         elif type == 'show_request':
-            next_scene = game.get_next_scene()
-            event = {"type": "show","label": next_scene}
-            await websocket.send(json.dumps(event))
+            players, next_scene = game.get_next_scene(player_id = player)
+            for player in players:
+                event = {"type": "show","label": next_scene}
+                await connected[player].send(json.dumps(event))
 
 async def join(websocket, join_key):
-    # Find the Connect Four game.
     try:
-        game, connected, roles = JOIN[join_key]
+        game, connected = JOIN[join_key]
     except KeyError:
         await error(websocket, "Game not found.")
         return
 
     # Register to receive moves from this game.
-    connected.add(websocket)
-    roles[id(websocket)] = None
+    connected.append(websocket)
 
     try:
         event = {
@@ -72,13 +73,13 @@ async def join(websocket, join_key):
 async def start(websocket):
     # Initialize an Experience Manager, the set of WebSocket connections
     # receiving events from this game, and secret access token.
-    game = ExperienceManager()
-    connected = {websocket}
-    roles = {id(websocket): None}
+    game = ExperienceManager(state_file = "initial_state.json", \
+        scene_file = "scenes.json", plot_file = "plot.json", players_file= "players_data.json")
+    connected = [websocket]
 
     join_key = "".join(random.choice(string.ascii_letters) for _ in range(4)).upper()
 
-    JOIN[join_key] = game, connected, roles
+    JOIN[join_key] = game, connected
 
     try:
         # Send the secret access token to the client of the first player.

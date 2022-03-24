@@ -23,13 +23,13 @@ class WebClient():
 
     
     async def _connect(self):
-        self.websocket = await websockets.connect(self.uri, ping_interval = None)
-        print("connected to web server")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(self.renpy_address)
         s.listen()
         self.renpy_socket, _ = s.accept()
         print("connected to renpy")
+        self.websocket = await websockets.connect(self.uri, ping_interval = None)
+        print("connected to web server")
         
 
     async def send_to_server(self, message):
@@ -37,16 +37,15 @@ class WebClient():
 
     async def recv_from_server(self):
         message = await self.websocket.recv()
-        print(message)
         return json.loads(message)
     
     def send_to_renpy(self, message):
         self.renpy_socket.sendall(message.encode('utf-8'))
 
     def recv_from_renpy(self):
-        message = self.renpy_socket.recv(1024)
+        message = self.renpy_socket.recv(4096)
         return message.decode('utf-8')
-    
+  
     async def close(self):
         await self.websocket.close()
     
@@ -60,38 +59,42 @@ class WebClient():
             await self.send_to_server(event)
             join_key = await self.recv_from_server()
             self.send_to_renpy(join_key['join'])
+            await self.recv_from_server()
+            self.send_to_renpy('joined')
 
         elif init == 'join':
             print('lets login player 2')
             key = self.recv_from_renpy()
             event = {"type": "join", "key": key}
             await self.send_to_server(event)
+            await self.recv_from_server()
+            self.send_to_renpy('joined')
+
 
         else:
             raise ValueError()
-
-        ack = await self.recv_from_server()
-        print(ack)
-        self.send_to_renpy("pick")
     
     async def pick_role(self):
         role = self.recv_from_renpy()
         event = {'type': 'role', 'pick': role}
         await self.send_to_server(event)
-        ack = await self.recv_from_server()
-        print(ack)
-        self.send_to_renpy("start")
+    
+    async def get_first_scene(self):
+        first_scene = await self.recv_from_server()
+        self.send_to_renpy(first_scene['label'])
 
 
 async def main():
     port = int(sys.argv[1])
     renpy_address = ('localhost', port)
-    uri = "wss://experience-manager-grad-proj.herokuapp.com/" # "ws://localhost:8765"
+    uri = "ws://localhost:8765" #"wss://experience-manager-grad-proj.herokuapp.com/" 
     myclient = await create_webclient(uri, renpy_address)
 
     await myclient.player_login()
 
     await myclient.pick_role()
+
+    await myclient.get_first_scene()
 
     while True:
         request = json.loads(myclient.recv_from_renpy())

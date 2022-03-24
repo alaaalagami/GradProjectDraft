@@ -1,0 +1,22 @@
+in multiplayer scene sending choice 3nd 7d changes scene 3n el tnyeen to play that choice (3ndo hwa b menu 3ady)
+lma y5las 3nd el tnyeen click next, pause a second, test lw el next leek geh, send empty scene and so on till it comes 
+(esm el scene mn el list +Name)
+make default wait for next b 0
+don't make him click next 5ly el pause fel empty scene lol
+menu count - menu order l7ad mygy el dora fel menu order
+
+
+changing scene aslan: 
+always wait for player 0 (5ly el call for next_scene tdeny anhy player)
+
+gating: 
+
+going for grouped scenes:
+lw hwa awel wa7ed mn ay group, find their scene, 
+lw l2 apply waiting mechanism
+-set next_sceneb "WAIT" (try to look this ahead mn previous scene)
+lw hwa awel wa7ed w mafeesh options, give them individual scene wel ba2y kman lma yegy
+
+fix scene counts
+
+Note: deal with ugly waiting and ugly "next"ing

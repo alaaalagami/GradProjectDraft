@@ -1,7 +1,7 @@
 # type: ignore
 
-define moemen = Character('Moemen')
-define alaa = Character('Alaa')
+define red = Character('Red Riding Hood')
+define wolf = Character('Wolf')
 
 init python:
     import os
@@ -12,6 +12,8 @@ init python:
 
     cwd =  '../RenPyTest' # os.getcwd()
 
+    current_scene = None
+
     def start_client(port):
         subprocess.Popen(['python', cwd + '/game/client.py', str(port)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
@@ -20,7 +22,7 @@ init python:
         client_socket.sendall(message.encode('utf-8'))
 
     def recv_from_server():
-        message = client_socket.recv(1024)
+        message = client_socket.recv(4096)
         return message.decode('utf-8')
         
     
@@ -29,8 +31,8 @@ init python:
         assert len(key) == 4
         return key
     
-    def send_choice(choice):
-        event = {'type': 'choice', 'pick': choice}
+    def send_choice(label, menu_label, choice):
+        event = {'type': 'choice', 'label': label, 'menu_label': menu_label, 'choice': choice}
         send_to_server(json.dumps(event))
     
     def get_next_scene():
@@ -70,7 +72,7 @@ menu login:
             narrator("Waiting for other player to join...", interact=False)
             renpy.pause(0.1, hard=True)
             signal = recv_from_server()
-            assert signal == 'pick'
+            assert signal == 'start'
             narrator("Other player joined!")
 
         jump pickRole
@@ -83,53 +85,125 @@ menu login:
             renpy.pause(0.1, hard=True)
             send_to_server(join_key)
             signal = recv_from_server()
-            assert signal == 'pick'
+            assert signal == 'joined'
             narrator("Joined Successfully!")
             
         jump pickRole
 
 menu pickRole:
     "Pick a role!"
-    "I want to control how Moemen feels.":
+    "Red Riding Hood":
        python:
-        send_to_server('controller')
-        signal = recv_from_server()
-        assert signal == 'start'
+        send_to_server('Red')
+        first_scene = recv_from_server()
+        current_scene = first_scene
+        renpy.jump(first_scene)
 
-       jump controller
-
-    "I want to perceive how Moemen feels.":
+    "Wolf":
        python:
-        send_to_server('perceiver')
-        signal = recv_from_server()
-        assert signal == 'start'
-
-       jump perceiver
-
-label controller:
-    python:
-        narrator("How do you want Moemen to feel?", interact=False)
-        mood = renpy.display_menu([("Happy", "happy"), ("Sad", "sad")])
-        send_choice(mood)
-        narrator("Moemen is now "+mood+"!")
-        renpy.jump("controller")
+        send_to_server('Wolf')
+        first_scene = recv_from_server()
+        current_scene = first_scene
+        renpy.jump(first_scene)
     
-label perceiver:
-    scene bg whitehouse
-    show moemen main at left
-    moemen "Hi I am Moemen"
+
+    
+
+label Red1:
+    red "Hello I am Red Riding Hood!"
+    red "I am going to my grandma's house"
+    red "As I am walking I find a sword on the ground"
+    python:
+        red("Do I take it?", interact=False)
+        choice = renpy.display_menu([("Take the Sword", "Take"), ("Leave the Sword", "Leave")])
+        send_choice(current_scene, "Sword", choice)
+        if choice == "Take":
+            red("Alright! Got it!")
+        else:
+            red("I better leave it alone")
+    red "I see my grandma's house approaching"
+    red "I knock on the door and enter"
+
     jump next
 
-label sad:
-    moemen "I am sad"
+label Wolf1:
+    wolf "Hello I am the big bad wolf"
+    wolf "I am very hungry right now"
+    wolf "I see a house nearby"
+    wolf "I enter the house and find Red Riding Hood's grandma lying bed"
+    
+    python:
+        wolf("Do I eat her?", interact=False)
+        choice = renpy.display_menu([("Eat the Grandma", "Eat"), ("Leave her alone", "Leave")])
+        send_choice(current_scene, "Grandma", choice)
+        if choice == "Eat":
+            red("Ah yes! What a delicious meal!")
+        else:
+            red("I better leave her alone")
+
     jump next
 
-label happy:
-    moemen "I am happy"
+label WolfEatsRed:
+    red "Hi grandma I am here!"
+    "Red Riding Hood sees the wolf has eaten her grandma"
+    red "Oh my god"
+    "The wolf starts approaching her"
+    wolf "I see the dessert has arrived!"
+    red "I wish I had taken the sword from before"
+    "The wolf eats Red Riding Hood"
     jump next
+
+label RedKillsWolf:
+    red "Hi grandma I am here!"
+    "Red Riding Hood sees the wolf has eaten her grandma"
+    red "Oh my god"
+    "The wolf starts approaching her"
+    wolf "I see the dessert has arrived!"
+    "Red Riding Hood swiftly takes out the sword"
+    wolf "Ah shit"
+    "Red Riding Hood kills the wolf and rescues her grandma"
+    red "(To Wolf) No cookies for you"
+    "Red Riding Hood and her grandma eat cookies over the wolf's corpse"
+    jump next
+
+label WolfEscapes:
+    red "Hi grandma I am here!"
+    "Red Riding Hood sees the wolf standing next to her grandma"
+    "She assumes the worst and takes out her sword"
+    "The wolf sees it and runs away in fear"
+    red "Thank god I arrived before something bad happens"
+    jump next
+
+label RedWolfFriends:
+    red "Hi grandma I am here!"
+    "Red Riding Hood sees the wolf standing next to her grandma"
+    red "Oh my god grandma run!"
+    wolf "Don't worry Red Riding Hood. I am a good wolf."
+    red "Really?"
+    wolf "Yes"
+    red "Really?"
+    wolf "Yes"
+    red "Ok I believe you"
+    "Red takes out her cookies"
+    "They all eat cookies together and become besties"
+    jump next
+
 
 label next:
-    moemen "Let's see how I am feeling!"
     python:
+        narrator("Loading scene...", interact=False)
+        renpy.pause(0.1, hard=True)
+        next_scene = get_next_scene()
+        current_scene = next_scene
+        renpy.jump(next_scene)
+
+label end_scene:
+    "The End"
+    return
+
+label wait_scene:
+    python:
+        narrator("Waiting for other player...", interact=False)
+        renpy.pause(1, hard=True)
         next_scene = get_next_scene()
         renpy.jump(next_scene)

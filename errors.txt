@@ -2,9 +2,13 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 13: expected statement.
-    from tkinter import W
-                         ^
+File "game/script.rpy", line 113: expected menuitem
+    python:
+    ^
+
+File "game/script.rpy", line 133: expected menuitem
+    python:
+    ^
 
 Ren'Py Version: Ren'Py 7.4.11.2266
-Mon Mar 14 22:47:44 2022
+Thu Mar 24 02:50:46 2022
