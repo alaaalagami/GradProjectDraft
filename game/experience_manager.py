@@ -11,7 +11,7 @@ class Player:
     def __init__(self, id):
         self.role = None
         self.id = id
-        self.scenes = []
+        self.scenes = [] # List of labels of scenes that the player has viewed so far
         self.state = PlayerState.READY
     
     def set_role(self, role):
@@ -24,6 +24,7 @@ class Player:
         self.scenes.append(label)
     
     def is_new_scene(self, label):
+    # Check if the player has not viewed this scene
         for scene in self.scenes:
             if scene == label:
                 return False
@@ -60,18 +61,22 @@ class ExperienceManager():
     def __init__(self, state_file, scene_file, plot_file, players_file):
         self.current_state = load_file(state_file)
         self.players_data = load_file(players_file)
-        self.scene_count = 1  # number of upcoming scene (+1 at end of get_next_scene)
-        self.players = []
         self.scenes_list = load_file(scene_file)
         self.plot = load_file(plot_file)
+
+        self.scene_count = 1  # Number of upcoming scene
+
+        self.players = []
         for i in range(int(self.players_data["players_count"])):
             self.players.append(Player(i))
+
         print("Created Experience Manager Instance")
     
 
    ############################################## UPDATING STATE ################################################
 
     def apply_changes(self, changes):
+    # Modify the current state based on the 'changes' dictionary
         print('State before:', self.current_state)
         for key in changes:
             if changes[key][0] == "add":
@@ -91,6 +96,8 @@ class ExperienceManager():
         print('Applying scene postconditions')
         changes = self.scenes_list[label]['postconditions']
         self.apply_changes(changes)
+
+        # If this is an ending scene, change the player(s) state to END
         if "end scene" in self.scenes_list[label]:
             for id in players_id:
                 self.players[id].end()
@@ -99,6 +106,7 @@ class ExperienceManager():
     ############################################## SCENE SELECTION ################################################
 
     def get_player_scenes(self, player_id):
+    # Get all scenes that the player can view based on their role
         role = self.get_player_role(player_id)
         player_scenes = []
         for label in self.scenes_list:
@@ -134,9 +142,9 @@ class ExperienceManager():
         return first_scene
 
     def get_next_scene(self, player_id):
-        
+    # Returns a tuple of two elements. The first element is a list of player IDs to show the scene. 
+    # The second is the scene label.
         player = self.players[player_id]
-
         if player.is_waiting():
             return ([player_id], 'wait_scene')
         elif player.ended():
@@ -147,36 +155,47 @@ class ExperienceManager():
         viable_scenes_list = []
 
         for label in player_scenes:
-            if  self.players[player_id].is_new_scene(label) and self.test_preconditions(label):
+            # If the scene has not been shown before to the player and its preconditions are statisfied, it is viable
+            if self.players[player_id].is_new_scene(label) and self.test_preconditions(label):
                 viable_scenes_list.append(label)
 
+        # If there are no viable scenes, then the player should wait for other players to change the state
+        # and check again later if there are any viable scenes
         if len(viable_scenes_list) == 0:
             player.wait()
             return ([player_id], 'wait_scene')
 
+        # In Demo 1, we just picked the first viable scene. This should be modified to employ the objective function.
         next_scene = viable_scenes_list[0]
 
+        # Checking for waiting players assumes only 2 players. Needs to be modified for generalized version.
         waiting_player = self.is_other_player_waiting(player_id)
 
+        # Release the other player from waiting in order to check if the current state (after applying postconditions)
+        # allows any viable scenes for them. This allows the player to check again if the reason they are waiting for
+        # is still valid after the state change done by other players.
         if waiting_player != None:
             waiting_player.release()
-            
+        
+        # Check if the next scene requires more than one player
         if self.scenes_list[next_scene]['player count'] > 1:
+            # If there are no waiting players, wait for any of them to be released.
             if waiting_player is None:
                 player.wait()
                 return ([player_id], 'wait_scene')
             else:
+                # If the other player is waiting, show the scene to both of them. (Assumes 2 players)
                 player.add_scene(next_scene)
                 waiting_player.add_scene(next_scene)
                 waiting_player.release()
                 self.apply_scene_postconditions(next_scene, [player_id, waiting_player.get_id()])
                 return ([player_id, waiting_player.get_id()], next_scene)
-
-        self.apply_scene_postconditions(next_scene, [player_id])
-        player.add_scene(next_scene)
-
-        print('Play scene', next_scene, 'for player(s)', player_id)
-        return (player_id, next_scene)
+        else:
+            # If the next scene requires only one player, show it immediately.
+            self.apply_scene_postconditions(next_scene, [player_id])
+            player.add_scene(next_scene)
+            print('Play scene', next_scene, 'for player(s)', player_id)
+            return (player_id, next_scene)
 
     
     ############################################## PLAYER HELPERS ################################################
@@ -197,6 +216,7 @@ class ExperienceManager():
         return all_assigned
     
     def is_other_player_waiting(self, player_id):
+    # Check if there are any waiting players and return their ID if found (Assumes only 2 players)
         for player in self.players:
             if player.get_id() != player_id and player.is_waiting():
                 return player

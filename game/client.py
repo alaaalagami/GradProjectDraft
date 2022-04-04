@@ -33,10 +33,12 @@ class WebClient():
         
 
     async def send_to_server(self, message):
+        print("Sent", message)
         await self.websocket.send(json.dumps(message))
 
     async def recv_from_server(self):
         message = await self.websocket.recv()
+        print("Received", message)
         return json.loads(message)
     
     def send_to_renpy(self, message):
@@ -47,6 +49,7 @@ class WebClient():
         return message.decode('utf-8')
   
     async def close(self):
+        self.renpy_socket.close()
         await self.websocket.close()
     
     
@@ -107,12 +110,10 @@ async def main():
             await myclient.send_to_server(request)
             next_scene = await myclient.recv_from_server()
             myclient.send_to_renpy(next_scene['label'])
-
-        elif type == 'end':
-            break
+            if next_scene['label'] == 'end_scene':
+                break
 
     await myclient.close()
-
 
 
 asyncio.run(main())

@@ -22,7 +22,7 @@ async def error(websocket, message):
 async def play(websocket, game, connected, player):
     async for message in websocket:
         event = json.loads(message)
-        print("Server received", event)
+        print("Server received", event, "from player", player)
         type = event['type']
 
         if type == 'role':
@@ -39,10 +39,11 @@ async def play(websocket, game, connected, player):
             game.apply_choice_postconditions(label = event['label'], menu_label = event['menu_label'], choice = event['choice'])
 
         elif type == 'show_request':
-            players, next_scene = game.get_next_scene(player_id = player)
-            for player in players:
+            players, next_scene = game.get_next_scene(player)
+            for id in players:
                 event = {"type": "show","label": next_scene}
-                await connected[player].send(json.dumps(event))
+                await connected[id].send(json.dumps(event))
+                print("Server sent", event, "to player", id)
 
 async def join(websocket, join_key):
     try:
@@ -68,7 +69,8 @@ async def join(websocket, join_key):
         await play(websocket, game, connected, 1)
 
     finally:
-        connected.remove(websocket)
+        print('Disconnected from game session')
+#        connected.remove(websocket)
 
 async def start(websocket):
     # Initialize an Experience Manager, the set of WebSocket connections
@@ -94,7 +96,9 @@ async def start(websocket):
         await play(websocket, game, connected, 0)
 
     finally:
-        del JOIN[join_key]
+        print('Ended and Removed game session')
+        # TODO: Implement clean ending of game session
+#        del JOIN[join_key]
 
 
 async def handler(websocket):

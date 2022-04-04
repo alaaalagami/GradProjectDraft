@@ -40,7 +40,12 @@ init python:
         send_to_server(json.dumps(event))
         scene = recv_from_server()
         return scene
-    
+
+
+label start:
+   python:
+    narrator("Contacting Server...", interact=False)
+    renpy.pause(0.1, hard=True)
     try:
         port = 5000
         start_client(port)
@@ -55,10 +60,8 @@ init python:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_address = ('localhost', port)
         client_socket.connect(client_address)
-
-
-label start:
-    jump login
+    
+    renpy.jump('login')
 
 menu login:
     "Do you want to host a new game or join an already-existing one?"
@@ -204,6 +207,6 @@ label end_scene:
 label wait_scene:
     python:
         narrator("Waiting for other player...", interact=False)
-        renpy.pause(1, hard=True)
+        renpy.pause(3, hard=True)
         next_scene = get_next_scene()
         renpy.jump(next_scene)
