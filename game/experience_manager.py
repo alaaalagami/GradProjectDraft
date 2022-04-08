@@ -13,6 +13,7 @@ class Player:
         self.id = id
         self.scenes = [] # List of labels of scenes that the player has viewed so far
         self.state = PlayerState.READY
+        self.awaiting_scene = None
     
     def set_role(self, role):
         self.role = role
@@ -50,6 +51,14 @@ class Player:
     
     def get_id(self):
         return self.id
+    
+    def set_awaiting_scene(self, scene):
+        self.awaiting_scene = scene
+
+    def get_awaiting_scene(self):
+        awaiting = self.awaiting_scene
+        self.awaiting_scene = None
+        return awaiting
 
 def load_file(file):
     f = open(file)
@@ -69,6 +78,8 @@ class ExperienceManager():
         self.players = []
         for i in range(int(self.players_data["players_count"])):
             self.players.append(Player(i))
+        
+        self.choices_made = []
 
         print("Created Experience Manager Instance")
     
@@ -88,6 +99,7 @@ class ExperienceManager():
 
     def apply_choice_postconditions(self, label, menu_label, choice):
         print('Selected', choice, 'from menu', menu_label)
+        self.choices_made.append((label, menu_label, choice))
         print('Applying choice postconditions')
         changes = self.scenes_list[label]["menus"][menu_label][choice]
         self.apply_changes(changes)
@@ -97,11 +109,19 @@ class ExperienceManager():
         changes = self.scenes_list[label]['postconditions']
         self.apply_changes(changes)
 
-        # If this is an ending scene, change the player(s) state to END
-        if "end scene" in self.scenes_list[label]:
-            for id in players_id:
-                self.players[id].end()
+        # If this is an ending scene, change the player state to END
+        for id in players_id:
+            self.check_and_apply_ending(label, id)
 
+    def check_choice(self, label, menu_label):
+        for choice_made in self.choices_made:
+            if label == choice_made[0] and menu_label == choice_made[1]:
+                return choice_made[2]
+        return 'None'
+    
+    def check_and_apply_ending(self, label, player_id):
+        if "end scene" in self.scenes_list[label]:
+            self.players[player_id].end()
 
     ############################################## SCENE SELECTION ################################################
 
@@ -149,6 +169,12 @@ class ExperienceManager():
             return ([player_id], 'wait_scene')
         elif player.ended():
             return ([player_id], 'end_scene')
+        
+        # If there is a scene that must be played after the current one, show it (usually a multiplayer scene picked by other players)
+        awaiting_scene = player.get_awaiting_scene()
+        if awaiting_scene != None:
+            self.check_and_apply_ending(awaiting_scene, player_id)
+            return ([player_id], awaiting_scene)
 
         player_scenes = self.get_player_scenes(player_id)
 
@@ -187,9 +213,10 @@ class ExperienceManager():
                 # If the other player is waiting, show the scene to both of them. (Assumes 2 players)
                 player.add_scene(next_scene)
                 waiting_player.add_scene(next_scene)
+                waiting_player.set_awaiting_scene(next_scene)
                 waiting_player.release()
-                self.apply_scene_postconditions(next_scene, [player_id, waiting_player.get_id()])
-                return ([player_id, waiting_player.get_id()], next_scene)
+                self.apply_scene_postconditions(next_scene, [player_id])
+                return ([player_id], next_scene)
         else:
             # If the next scene requires only one player, show it immediately.
             self.apply_scene_postconditions(next_scene, [player_id])

@@ -72,8 +72,6 @@ class WebClient():
             await self.send_to_server(event)
             await self.recv_from_server()
             self.send_to_renpy('joined')
-
-
         else:
             raise ValueError()
     
@@ -112,6 +110,11 @@ async def main():
             myclient.send_to_renpy(next_scene['label'])
             if next_scene['label'] == 'end_scene':
                 break
+        
+        elif type == 'check_choice':
+            await myclient.send_to_server(request)
+            choice = await myclient.recv_from_server()
+            myclient.send_to_renpy(choice['choice'])
 
     await myclient.close()
 

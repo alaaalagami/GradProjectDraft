@@ -32,7 +32,6 @@ async def play(websocket, game, connected, player):
                 for player in range(len(connected)):
                     first_scene = game.get_first_scene(player)
                     event = {"type": "show", "label": first_scene}
-                    print(connected[player])
                     await connected[player].send(json.dumps(event))
 
         elif type == 'choice':
@@ -44,6 +43,12 @@ async def play(websocket, game, connected, player):
                 event = {"type": "show","label": next_scene}
                 await connected[id].send(json.dumps(event))
                 print("Server sent", event, "to player", id)
+        
+        elif type == 'check_choice':
+            choice = game.check_choice(event['label'], event['menu_label'])
+            event = {'type': 'checked_choice', 'choice': choice}
+            await connected[player].send(json.dumps(event))
+            print("Server sent", event, "to player", player)
 
 async def join(websocket, join_key):
     try:
