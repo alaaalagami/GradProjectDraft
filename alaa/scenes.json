@@ -1,0 +1,111 @@
+{
+   "Red1":{
+      "player count":1,
+      "player":["Red"],
+      "preconditions":{
+      },
+      "postconditions":{
+         "start": ["is", "0"],
+         "objective feature 2":["set", "0"]
+      },
+      "menus":{
+         "Sword":{
+            "Take":{
+               "RedHasSword":["set", "1"]
+            },
+            "Leave":{
+               "RedHasSword":["set", "0"]
+            }
+         }
+      },
+      "menu characters order":["Red"]
+  },
+
+  "Wolf1":{
+   "player count":1,
+   "player":["Wolf"],
+   "preconditions":{
+   },
+   "postconditions":{
+      "start": ["is", "0"],
+      "objective feature 1":["set", "0"]
+   },
+   "menus":{
+      "Grandma":{
+         "Eat":{
+            "WolfEatsGrandma": ["set", "1"]
+         },
+         "Leave":{
+            "WolfEatsGrandma":["set", "0"]
+         }
+      }
+   },
+   "menu characters order":["Wolf"]
+},
+
+   "WolfEatsRed":{
+       "player count":2,
+       "player":["Red", "Wolf"],
+       "preconditions":{
+          "RedHasSword": ["is", "0"],
+          "WolfEatsGrandma": ["is", "1"]
+       },
+       "postconditions":{
+       },
+       "end scene": 1
+   },
+
+   "RedKillsWolf":{
+      "player count": 2,
+      "player":["Red", "Wolf"],
+      "preconditions":{
+         "RedHasSword": ["is", "1"],
+         "WolfEatsGrandma": ["is", "1"]
+      },
+      "postconditions":{
+      },
+
+      "menus":{
+         "Regret":{
+            "Yes":{
+            },
+            "No":{
+            }
+         },
+         
+         "Fear":{
+            "Yes":{
+            },
+            "No":{
+            }
+         }
+      },
+      "end scene": 1
+  },
+
+   "WolfEscapes":{
+      "player count": 2,
+      "player":["Red", "Wolf"],
+      "preconditions":{
+         "RedHasSword": ["is", "1"],
+         "WolfEatsGrandma": ["is", "0"]
+      },
+      "postconditions":{
+      },
+      "end scene": 1
+   },
+
+   "RedWolfFriends":{
+      "player count": 2,
+      "player":["Red", "Wolf"],
+      "preconditions":{
+         "RedHasSword": ["is", "0"],
+         "WolfEatsGrandma": ["is", "0"]
+      },
+      "postconditions":{
+      },
+      "end scene": 1
+   }
+
+   
+}

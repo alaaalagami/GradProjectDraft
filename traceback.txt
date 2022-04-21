@@ -22,7 +22,7 @@ Full traceback:
     raise ScriptError("could not find label '%s'." % str(original))
 ScriptError: could not find label ''.
 
-Linux-5.4.0-105-generic-x86_64-with-debian-bullseye-sid
+Linux-5.4.0-107-generic-x86_64-with-debian-bullseye-sid
 Ren'Py 7.4.11.2266
 RenPyTest 1.0
-Fri Apr  8 17:34:27 2022
+Tue Apr 19 23:39:12 2022

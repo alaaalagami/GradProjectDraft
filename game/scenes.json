@@ -5,8 +5,6 @@
       "preconditions":{
       },
       "postconditions":{
-         "start": ["is", "0"],
-         "objective feature 2":["set", "0"]
       },
       "menus":{
          "Sword":{
@@ -18,7 +16,7 @@
             }
          }
       },
-      "menu characters order":["Red"]
+      "end scene": 1
   },
 
   "Wolf1":{
@@ -27,85 +25,78 @@
    "preconditions":{
    },
    "postconditions":{
-      "start": ["is", "0"],
-      "objective feature 1":["set", "0"]
    },
    "menus":{
-      "Grandma":{
+      "Mushroom":{
          "Eat":{
-            "WolfEatsGrandma": ["set", "1"]
+            "Hungry-Wolf": ["add", "-2"]
          },
          "Leave":{
-            "WolfEatsGrandma":["set", "0"]
+            "Hungry-Wolf":["add", "1"]
+            }
          }
       }
    },
-   "menu characters order":["Wolf"]
-},
 
-   "WolfEatsRed":{
-       "player count":2,
-       "player":["Red", "Wolf"],
-       "preconditions":{
-          "RedHasSword": ["is", "0"],
-          "WolfEatsGrandma": ["is", "1"]
-       },
-       "postconditions":{
-       },
-       "end scene": 1
-   },
-
-   "RedKillsWolf":{
-      "player count": 2,
-      "player":["Red", "Wolf"],
+   "Wolf-Full-Happy":{
+      "player count":1,
+      "player":["Wolf"],
       "preconditions":{
-         "RedHasSword": ["is", "1"],
-         "WolfEatsGrandma": ["is", "1"]
+         "Hungry-Wolf": ["less than", "3"],
+         "Felt": ["is", "0"]
       },
       "postconditions":{
+         "Happy-Wolf": ["set", "3"],
+         "Felt": ["set", "1"]
       },
-
       "menus":{
-         "Regret":{
-            "Yes":{
-            },
-            "No":{
-            }
-         },
-         
-         "Fear":{
-            "Yes":{
-            },
-            "No":{
-            }
-         }
-      },
-      "end scene": 1
-  },
+      }
+   },
 
-   "WolfEscapes":{
-      "player count": 2,
-      "player":["Red", "Wolf"],
+   "Wolf-Stomach-Hurt":{
+      "player count":1,
+      "player":["Wolf"],
       "preconditions":{
-         "RedHasSword": ["is", "1"],
-         "WolfEatsGrandma": ["is", "0"]
+         "Hungry-Wolf": ["less than", "3"],
+         "Felt": ["is", "0"]
       },
       "postconditions":{
+         "Happy-Wolf": ["set", "1"],
+         "Felt": ["set", "1"]
+      },
+      "menus":{
+      }
+      },
+
+   "Wolf-Happy-Ending":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Happy-Wolf": ["less than", "2"],
+         "Felt": ["is", "1"]
+      },
+      "postconditions":{
+         "Happy-Wolf": ["set", "5"]
+      },
+      "menus":{
       },
       "end scene": 1
    },
 
-   "RedWolfFriends":{
-      "player count": 2,
-      "player":["Red", "Wolf"],
+   "Wolf-Sad-Ending":{
+      "player count":1,
+      "player":["Wolf"],
       "preconditions":{
-         "RedHasSword": ["is", "0"],
-         "WolfEatsGrandma": ["is", "0"]
+         "Happy-Wolf": ["more than", "2"],
+         "Felt": ["is", "1"]
       },
       "postconditions":{
+         "Happy-Wolf": ["set", "0"]
       },
+      "menus":{
+      },
+      
       "end scene": 1
    }
 
-   
 }
