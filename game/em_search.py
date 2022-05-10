@@ -113,10 +113,10 @@ class EM_Searcher:
         return solutions
 
     def validate(self, init_state=None):
-        problem = EM_Search_Problem(SearchType.VALIDATION, init_state=init_state)
+        problem = EM_Search_Problem(SearchType.PLANNING, init_state=init_state)
         self.solutions = self.dfs(problem)
 
-        print('Found', len(self.solutions), 'solutions from current state')
+        print('\nFound', len(self.solutions), 'solutions from current state\n')
         unique_viewed_scenes = list(set(problem.viewed_scenes))
         unviewed_scenes = []
         for label in problem.init_state.scenes_list:
@@ -124,16 +124,16 @@ class EM_Searcher:
                 unviewed_scenes.append(label)
 
         if len(unviewed_scenes) == 0:
-            print("There are no unreachable scenes")
+            print("There are no unreachable scenes\n")
         else:
-            print("Unreachable scenes are", unviewed_scenes)
+            print("Unreachable scenes are", unviewed_scenes, '\n')
 
         if len(problem.deadends) == 0:
-            print("No deadends detected!")
+            print("No deadends detected!\n")
         else:
-            print("The following scenarios lead to deadend:")
+            print("The following scenarios lead to deadend:\n")
             for deadend in problem.deadends:
-                print(deadend)
+                print(deadend, '\n')
         
         return self.solutions
     

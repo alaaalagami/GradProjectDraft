@@ -97,6 +97,18 @@
       },
       
       "end scene": 1
+   },
+
+   "Unreachable-Scene":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Happy-Wolf": ["more than", "10"]
+      },
+      "postconditions":{
+      },
+      "menus":{
+      }
    }
 
 }

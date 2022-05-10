@@ -73,6 +73,9 @@ class Player:
     
     def decrement_beat_count(self):
         self.beat_count -= 1
+    
+    def get_scenes(self):
+        return self.scenes
 
 class GameState:
     def __init__(self, current_state, players, scenes_list, plot, players_data, gate_window):
