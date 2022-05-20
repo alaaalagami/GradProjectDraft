@@ -1,2 +1,2 @@
-{"RedHasSword": "None", "Felt": 0,
-    "Hungry-Wolf": 3,  "Happy-Wolf": 1, "Happy-Red": 1, "Tension": 1}
+{"RedHasSword": "None", "Wolf-Scene-Number": 0, "Red-Scene-Number": 0, "Wolf-Restaurant": "None", "Restaurant-Open": 1,
+    "Hungry-Wolf": 3,  "Happy-Wolf": 0, "Happy-Red": 1, "Full-Wolf": 0, "Tension": 1}

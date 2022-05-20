@@ -1,6 +1,6 @@
 {
 "players_count": 2, "characters": {
-    "Red": {"first scene": "Red1"}, 
-    "Wolf": {"first scene": "Wolf1"}
+    "Red": {"first scene": "Red1", "objective features": ["Happy-Red"]}, 
+    "Wolf": {"first scene": "Wolf1", "objective features": ["Happy-Wolf"]}
     }
 }

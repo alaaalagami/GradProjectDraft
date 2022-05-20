@@ -18,6 +18,18 @@ class ExperienceManager():
 
     def check_choice(self, label, menu_label):
         return check_choice(self, label, menu_label, self.gamestate)
+    
+    def validate_choices(self, label, menu_label):
+        searcher = EM_Searcher()
+        solutions = searcher.plan(self.gamestate)
+        valid_choices = []
+
+        for sol in solutions:
+            first_action = sol[0][0]
+            if first_action[0] == 'menu' and first_action[1][0] == label and first_action[1][1] == menu_label:
+                valid_choices.append(first_action[1][2])
+
+        return list(set(valid_choices))
 
     ############################################## SCENE SELECTION ################################################
 
@@ -25,21 +37,120 @@ class ExperienceManager():
         return get_first_scene(player_id, self.gamestate)
 
     def plan_next_scene(self, player_id):
+        # Solutions are in the form: ([('menu', menu_details), ('scene', scene_details)], error)
+        # menu_details: [label, menu_label, choice]
+        # scene_details: [[player_id], label]
+
+        def separate_solutions(solutions):
+            group_0 = []
+            group_1 = []
+            for sol in solutions:
+                if sol[0][0][0] == 'menu':
+                    if sol[0][0][2] == 0:
+                        group_0.append(sol)
+                    else:
+                        group_1.append(sol)
+                elif sol[0][0][0] == 'scene':
+                    if sol[0][0][1][0][0] == 0:
+                        group_0.append(sol)
+                    else:
+                        group_1.append(sol)
+
+            return group_0, group_1
+        
+        def evaluate_scene(solutions):
+            possible_next_scene_labels = list(set([sol[0][0][1][1] for sol in solutions]))
+            print('poss', possible_next_scene_labels)
+            labels_and_errors = []
+            for label in possible_next_scene_labels:
+                label_solutions = [(sol[0][1:], sol[1]) for sol in solutions if sol[0][0][1][1] == label]
+                if len(label_solutions) == 1:
+                    labels_and_errors.append((label, label_solutions[0][1]))
+                    continue
+                total_error = 0
+                p0_solutions, p1_solutions = separate_solutions(label_solutions)
+
+                if len(p0_solutions) > 0:
+                    if  p0_solutions[0][0][0][0] == 'menu':
+                        total_error += evaluate_menu(p0_solutions)
+                        print('1Evaluated menu', evaluate_menu(p0_solutions))
+                        if evaluate_menu(p0_solutions) == 4.0:
+                            print(p0_solutions)
+                    else:
+                        total_error += evaluate_scene(p0_solutions)[1]
+#                        print('Evaluated scene', evaluate_scene(p0_solutions)[1])
+
+                if len(p1_solutions) > 0:
+                   if p1_solutions[0][0][0][0] == 'menu':
+                       total_error += evaluate_menu(p1_solutions)
+                   else:
+                       total_error += evaluate_scene(p1_solutions)[1]
+#                       print('Evaluated scene', evaluate_scene(p1_solutions)[1])
+
+                total_error /= (len(p0_solutions) > 0) + (len(p1_solutions) > 0)
+                labels_and_errors.append((label, total_error))
+            
+            print('labels and errors', labels_and_errors)
+            least_error_label = min(labels_and_errors, key=lambda x: x[1])
+#            print('least', least_error_label)
+            return least_error_label
+        
+        def evaluate_menu(solutions):
+            possible_choices = list(set([sol[0][0][1][2] for sol in solutions]))
+            total_error = 0
+            for choice in possible_choices:
+                additional_error = 0
+                choice_solutions = [(sol[0][1:], sol[1]) for sol in solutions if sol[0][0][1][2] == choice]
+
+                if len(choice_solutions) == 1:
+                    total_error += choice_solutions[0][1]
+                    continue
+
+                p0_solutions, p1_solutions = separate_solutions(choice_solutions)
+
+                if len(p0_solutions) > 0:
+                    if  p0_solutions[0][0][0][0] == 'menu':
+                        additional_error += evaluate_menu(p0_solutions)
+                    else:
+                        additional_error += evaluate_scene(p0_solutions)[1]
+#                        print('Evaluated scene', evaluate_scene(p0_solutions)[1])
+
+                if len(p1_solutions) > 0:
+                    if p1_solutions[0][0][0][0] == 'menu':
+                        additional_error += evaluate_menu(p1_solutions)
+                    else:
+                        additional_error += evaluate_scene(p1_solutions)[1]
+#                        print('Evaluated scene', evaluate_scene(p1_solutions)[1])
+                total_error += additional_error / ((len(p0_solutions) > 0) + (len(p1_solutions) > 0))
+                print('-----------added to error', additional_error / ((len(p0_solutions) > 0) + (len(p1_solutions) > 0)))
+
+            print('possible choices', len(possible_choices))
+            total_error *= 1/len(possible_choices) # Probability adapting happens here
+            return total_error
+                            
         searcher = EM_Searcher()
         solutions = searcher.plan(self.gamestate)
-        solutions.sort(key=lambda sol: sol[-1])
-        print('plan sols', solutions)
+
+        # Filter out solutions that start with the other player's menus and scenes
+        viable_solutions = []
         for sol in solutions:
-            for action in sol[0]:
-                print('action', action)
-                if action[0] == 'menu':
-                    continue
-                if action[1][0][0] != player_id:
-                    continue
-                return action[1][1]
+            first_action = sol[0][0]
+            if first_action[0] == 'menu':
+                continue
+            if first_action[1][0][0] != player_id:
+                continue
+            viable_solutions.append(sol)
+
+        for sol in viable_solutions:
+            print(sol)
         
+        least_error_label = evaluate_scene(viable_solutions)
+
+        return least_error_label[0]
+
+                            
     def get_next_scene(self, player_id):
-#        return get_next_scene(player_id, self.gamestate)
+
         player = self.gamestate.players[player_id]
 
         handled = handle_edge_cases(player_id, self.gamestate)
@@ -58,9 +169,7 @@ class ExperienceManager():
             player.wait()
             return [player_id], 'wait_scene'
 
-        print('in-----------------------------------------------------')
         next_scene = self.plan_next_scene(player_id)
-        print('out-----------------------------------------------------')
         return handle_multiplayer_scenes(player_id, self.gamestate, next_scene, waiting_player)
 
     

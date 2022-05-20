@@ -1,5 +1,5 @@
 from collections import deque
-
+from copy import deepcopy
 from em_functionalities import *
 from abstract_helpers import Problem, Node, solution
 from treelib import Tree
@@ -26,7 +26,7 @@ class EM_Search_Problem(Problem):
                 scene = get_first_scene(i, self.init_state)
                 self.viewed_scenes.append(scene[1])
         else:
-            self.init_state = init_state
+            self.init_state = deepcopy(init_state)
 
     def actions(self, state):
         # actions are either scene transitions or player choices
@@ -37,22 +37,21 @@ class EM_Search_Problem(Problem):
             next_menu = self.get_next_menu(scenes[i], state)
             if next_menu != 'None':
                 for choice in next_menu[2]:
-                    actions.append(('menu', [next_menu[0], next_menu[1], choice]))
-        
-        if len(actions) == 0:
-            next_scenes = []
-            for i in range(2):
+                    actions.append(('menu', [next_menu[0], next_menu[1], choice], i))
+            else:
+                next_scenes = []
+
                 if self.search_type == SearchType.VALIDATION:
                     next_scenes.append(get_next_scene(i, state))
                 elif self.search_type == SearchType.PLANNING:
                     next_scenes.extend([scene for scene in get_all_next_scenes(i, state) if type(scene) == tuple])
-
-            for next_scene in next_scenes:
-                if next_scene[1] == 'wait_scene' or next_scene[1] == 'end_scene':
-                    continue
-                actions.append(('scene', next_scene))
-                self.viewed_scenes.append(next_scene[1])
-
+                
+                for next_scene in next_scenes:
+                    if next_scene[1] == 'wait_scene' or next_scene[1] == 'end_scene':
+                        continue
+                    actions.append(('scene', next_scene))
+                    self.viewed_scenes.append(next_scene[1])
+    
         return actions
     
     def result(self, state, action):
@@ -69,9 +68,7 @@ class EM_Search_Problem(Problem):
         if action[0] == 'menu':
             return 0
         elif action[0] == 'scene':
-            state.players[action[1][0][0]].decrement_beat_count()
             error = get_error(action[1][1], action[1][0][0], state)
-            print('Got error', error, 'for action')
             return error
         
     
@@ -102,10 +99,15 @@ class EM_Searcher:
         while frontier:
             node = frontier.pop()
             actions = problem.actions(node.state)
+
             if len(actions) == 0:
                 problem.deadends.append(solution(node))
+
             for action in actions:
                 child = Node.child(problem, node, action)
+                if action[0] == 'scene':
+                    child.state.players[action[1][0][0]].increment_beat_count()
+                    child.state.players[action[1][0][0]].add_scene(action[1][1])
                 if problem.goal_test(child.state):
                     solutions.append(solution(child))
                 else:
@@ -116,7 +118,6 @@ class EM_Searcher:
         problem = EM_Search_Problem(SearchType.PLANNING, init_state=init_state)
         self.solutions = self.dfs(problem)
 
-        print('\nFound', len(self.solutions), 'solutions from current state\n')
         unique_viewed_scenes = list(set(problem.viewed_scenes))
         unviewed_scenes = []
         for label in problem.init_state.scenes_list:

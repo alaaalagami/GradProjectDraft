@@ -39,6 +39,12 @@ init python:
         event = {'type': 'choice', 'label': label, 'menu_label': menu_label, 'choice': choice}
         send_to_server(json.dumps(event))
     
+    def validate_choices(label, menu_label):
+        event = {'type': 'validate_choices', 'label': label, 'menu_label': menu_label}
+        send_to_server(json.dumps(event))
+        valid_choices = list(recv_from_server())
+        return valid_choices
+
     def get_next_scene():
         event = {'type': 'show_request'}
         send_to_server(json.dumps(event))
@@ -56,6 +62,8 @@ init python:
     def make_choice(character, current_scene, menu_label, prompt, choices, reactions):
         if role.name == character.name:
             character(prompt, interact=False)
+            valid_choices = validate_choices(current_scene, menu_label)
+            choices = [c for c in choices if c[1] in valid_choices]
             choice = renpy.display_menu(choices)
             send_choice(current_scene, menu_label, choice)
         else:

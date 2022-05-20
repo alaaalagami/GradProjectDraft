@@ -1,79 +1,138 @@
 {
    "Red1":{
       "player count":1,
+      "scene number": 1,
       "player":["Red"],
       "preconditions":{
       },
       "postconditions":{
       },
       "menus":{
-         "Sword":{
-            "Take":{
-               "RedHasSword":["set", "1"]
+      }
+  },
+
+  "Red-Decides-Restaurant":{
+      "player count":1,
+      "scene number": 2,
+      "player":["Red"],
+      "preconditions":{
+      },
+      "postconditions":{
+      },
+      "menus":{
+         "Restaurant":{
+            "Open":{
+               "Restaurant-Open": ["set", "1"]
             },
-            "Leave":{
-               "RedHasSword":["set", "0"]
+            "Close":{
+               "Restaurant-Open": ["set", "0"]
             }
          }
+      }
+   },
+
+   "Red-Ending":{
+      "player count":1,
+      "scene number": 3,
+      "player":["Red"],
+      "preconditions":{
+      },
+      "postconditions":{
+      },
+      "menus":{
       },
       "end scene": 1
   },
+   
 
   "Wolf1":{
    "player count":1,
+   "scene number": 1,
    "player":["Wolf"],
    "preconditions":{
    },
    "postconditions":{
    },
-   "menus":{
-      "Mushroom":{
-         "Eat":{
-            "Hungry-Wolf": ["add", "-2"]
-         },
-         "Leave":{
-            "Hungry-Wolf":["add", "1"]
-            }
-         }
-      }
+   "menus":{}
    },
 
-   "Wolf-Full-Happy":{
+   "Wolf-Goes-Restaurant":{
       "player count":1,
+      "scene number": 2,
       "player":["Wolf"],
       "preconditions":{
-         "Hungry-Wolf": ["less than", "3"],
-         "Felt": ["is", "0"]
       },
       "postconditions":{
-         "Happy-Wolf": ["set", "3"],
-         "Felt": ["set", "1"]
+         "Wolf-Restaurant": ["set", "1"]
       },
       "menus":{
       }
    },
 
-   "Wolf-Stomach-Hurt":{
+   "Wolf-Goes-Supermarket":{
       "player count":1,
+      "scene number": 2,
       "player":["Wolf"],
       "preconditions":{
-         "Hungry-Wolf": ["less than", "3"],
-         "Felt": ["is", "0"]
       },
       "postconditions":{
-         "Happy-Wolf": ["set", "1"],
-         "Felt": ["set", "1"]
+         "Wolf-Restaurant": ["set", "0"],
+         "Full-Wolf": ["set", "3"]
       },
       "menus":{
       }
+   },
+
+   "Wolf-Buys-Food":{
+      "player count":1,
+      "scene number": 3,
+      "player":["Wolf"],
+      "preconditions":{
+         "Wolf-Restaurant": ["is", "0"]
       },
+      "postconditions":{
+      },
+      "menus":{
+      }
+   },
+
+   "Wolf-Restaurant-Closed":{
+      "player count":1,
+      "scene number": 3,
+      "player":["Wolf"],
+      "preconditions":{
+         "Wolf-Restaurant": ["is", "1"],
+         "Restaurant-Open": ["is", "0"]
+      },
+      "postconditions":{
+         "Full-Wolf": ["set", "0"]
+      },
+      "menus":{
+      }
+   },
+
+   "Wolf-Restaurant-Open":{
+      "player count":1,
+      "scene number": 3,
+      "player":["Wolf"],
+      "preconditions":{
+         "Wolf-Restaurant": ["is", "1"],
+         "Restaurant-Open": ["is", "1"]
+      },
+      "postconditions":{
+         "Full-Wolf": ["set", "5"]
+      },
+      "menus":{
+      }
+   },
 
    "Wolf-Happy-Ending":{
       "player count":1,
+      "scene number": 4,
       "player":["Wolf"],
       "preconditions":{
-         "Happy-Wolf": ["less than", "2"],
-         "Felt": ["is", "1"]
+         "Full-Wolf": ["more than", "4"],
+         "Restaurant-Open": ["is", "1"]
       },
       "postconditions":{
          "Happy-Wolf": ["set", "5"]
@@ -83,32 +142,33 @@
       "end scene": 1
    },
 
-   "Wolf-Sad-Ending":{
+   "Wolf-Neutral-Ending":{
       "player count":1,
+      "scene number": 4,
       "player":["Wolf"],
       "preconditions":{
-         "Happy-Wolf": ["more than", "2"],
-         "Felt": ["is", "1"]
+         "Full-Wolf": ["is", "3"]
+      },
+      "postconditions":{
+         "Happy-Wolf": ["set", "3"]
+         },
+      "menus":{
+      },
+      "end scene": 1
+   },
+
+   "Wolf-Sad-Ending":{
+      "player count":1,
+      "scene number": 4,
+      "player":["Wolf"],
+      "preconditions":{
+         "Full-Wolf": ["less than", "2"]
       },
       "postconditions":{
          "Happy-Wolf": ["set", "0"]
       },
       "menus":{
       },
-      
       "end scene": 1
-   },
-
-   "Unreachable-Scene":{
-      "player count":1,
-      "player":["Wolf"],
-      "preconditions":{
-         "Happy-Wolf": ["more than", "10"]
-      },
-      "postconditions":{
-      },
-      "menus":{
-      }
    }
-
 }

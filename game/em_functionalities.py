@@ -69,6 +69,7 @@ class Player:
         self.beat_count = value
 
     def increment_beat_count(self):
+#        print('Incremented Beat Count for player', self.id, 'to', self.beat_count+1, self.scenes)
         self.beat_count += 1
     
     def decrement_beat_count(self):
@@ -115,23 +116,23 @@ def get_initial_gamestate(state_file, scene_file, plot_file, players_file):
 
 def apply_changes(changes, gamestate):
 # Modify the current state based on the 'changes' dictionary
-    print('State before:', gamestate.current_state)
+#    print('State before:', gamestate.current_state)
     for key in changes:
         if changes[key][0] == "add":
             gamestate.current_state[key] = float(gamestate.current_state[key]) + float(changes[key][1])
         elif changes[key][0] == "set":
             gamestate.current_state[key] = float(changes[key][1])
-    print('State after:', gamestate.current_state, '\n')
+#    print('State after:', gamestate.current_state, '\n')
 
 def apply_choice_postconditions(label, menu_label, choice, gamestate):
-    print('Selected', choice, 'from menu', menu_label)
+#    print('Selected', choice, 'from menu', menu_label)
     gamestate.choices_made.append((label, menu_label, choice))
-    print('Applying choice postconditions')
+#    print('Applying choice postconditions')
     changes = gamestate.scenes_list[label]["menus"][menu_label][choice]
     apply_changes(changes, gamestate)
 
 def apply_scene_postconditions(label, players_id, gamestate):
-    print('Applying scene', label, 'postconditions')
+#    print('Applying scene', label, 'postconditions')
     changes = gamestate.scenes_list[label]['postconditions']
     apply_changes(changes, gamestate)
     # If this is an ending scene, change the player state to END
@@ -163,9 +164,12 @@ def get_player_scenes(player_id, gamestate):
                 player_scenes.append(label)
     return player_scenes
 
-def test_preconditions(label, gamestate):
+def test_preconditions(player_id, label, gamestate):
     preconditions = gamestate.scenes_list[label]["preconditions"]
+    scene_number = int(gamestate.scenes_list[label]["scene number"])
     state = gamestate.current_state
+    if scene_number-1 != gamestate.players[player_id].get_beat_count():
+        return False
     for key in preconditions:
      try:
         if preconditions[key][0] == "is":
@@ -181,15 +185,17 @@ def test_preconditions(label, gamestate):
         return False
     return True
 
-def get_error(label, player_id, gamestate):   
+
+def get_error(label, player_id, gamestate):
     beat_count = gamestate.players[player_id].get_beat_count()
-    print(beat_count)
     progression = gamestate.plot["progression"][beat_count]
     if progression[0] == "s":
-        features = gamestate.plot["single player beat features"]
+        progression_features = gamestate.plot["single player beat features"]
+        features = gamestate.players_data["characters"][get_player_role(player_id, gamestate)]["objective features"]
         weights = gamestate.plot["single player beat weights"]
     else:
         features = gamestate.plot["multi player beat features"]
+        progression_features = features
         weights = gamestate.plot["multi player beat weights"]
     
     objectives = progression[1]
@@ -208,10 +214,9 @@ def get_error(label, player_id, gamestate):
             else:
                 current_values[feature] = postconditions[feature][1]
     error = 0
-    print(objectives, label, current_values)
     for i in range(len(features)):
         feature = features[i]
-        objective = objectives[i]
+        objective = objectives[progression_features.index(feature)]
         weight = weights[i]
         error += weight * abs(objective - float(current_values[feature]))
     
@@ -306,7 +311,7 @@ def get_viable_scenes(player_id, gamestate):
     
     for label in player_scenes:
         # If the scene has not been shown before to the player and its preconditions are statisfied, it is viable
-        if gamestate.players[player_id].is_new_scene(label) and test_preconditions(label, gamestate):
+        if gamestate.players[player_id].is_new_scene(label) and test_preconditions(player_id, label, gamestate):
             viable_scenes_list.append(label)
     return viable_scenes_list
 
@@ -314,7 +319,7 @@ def get_all_next_scenes(player_id, gamestate):
     
     player = gamestate.players[player_id]
     handled = handle_edge_cases(player_id, gamestate)
-
+    
     if handled[0] is not None:
         return handled
 
@@ -326,7 +331,7 @@ def get_all_next_scenes(player_id, gamestate):
         player.wait()
         return [player_id], 'wait_scene'
     
-    player.increment_beat_count()
+
     return [([player_id], scene) for scene in viable_scenes_list]
 
 def get_next_scene(player_id, gamestate):

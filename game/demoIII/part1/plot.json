@@ -1,8 +1,8 @@
 {
-    "gate every": 8,
+    "gate every": 4,
     "single player beat features": ["Happy-Wolf", "Happy-Red"],
     "single player beat weights": [1, 1],
     "multi player beat features": ["Tension"],
     "multi player beat weights": [1],
-    "progression": [["s", [1, 1]], ["s", [0, 1]], ["s", [0, 1]], ["s", [5, 1]]]
+    "progression": [["s", [1, 1]], ["s", [0, 1]], ["s", [5, 1]], ["m", [3]]]
   }

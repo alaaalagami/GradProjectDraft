@@ -115,6 +115,11 @@ async def main():
             await myclient.send_to_server(request)
             choice = await myclient.recv_from_server()
             myclient.send_to_renpy(choice['choice'])
+        
+        elif type == 'validate_choices':
+            await myclient.send_to_server(request)
+            choices = await myclient.recv_from_server()
+            myclient.send_to_renpy(choices['choices'])
 
     await myclient.close()
 

@@ -49,6 +49,12 @@ async def play(websocket, game, connected, player):
             event = {'type': 'checked_choice', 'choice': choice}
             await connected[player].send(json.dumps(event))
             print("Server sent", event, "to player", player)
+        
+        elif type == 'validate_choices':
+            valid_choices = game.validate_choices(event['label'], event['menu_label'])
+            event = {'type': 'validated_choices', 'choices': valid_choices}
+            await connected[player].send(json.dumps(event))
+            print("Server sent", event, "to player", player)
 
 async def join(websocket, join_key):
     try:

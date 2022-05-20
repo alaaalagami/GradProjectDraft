@@ -1,0 +1,114 @@
+{
+   "Red1":{
+      "player count":1,
+      "player":["Red"],
+      "preconditions":{
+      },
+      "postconditions":{
+      },
+      "menus":{
+      },
+      "end scene": 1
+  },
+
+  "Wolf1":{
+   "player count":1,
+   "player":["Wolf"],
+   "preconditions":{
+   },
+   "postconditions":{
+      "Scene-Number": ["add", "1"]
+   },
+   "menus":{}
+   },
+
+   "Wolf-Walks":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Scene-Number": ["is", "1"]
+      },
+      "postconditions":{
+         "Scene-Number": ["add", "1"]
+      },
+      "menus":{
+         "Eat":{
+            "Chicken":{
+               "Full-Wolf":["set", "5"]
+            },
+            "Mushroom":{
+               "Full-Wolf":["set", "0"]
+            }
+       }
+      }
+   },
+
+   "Wolf-Climbs-Tree":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Scene-Number": ["is", "1"]
+      },
+      "postconditions":{
+         "Scene-Number": ["add", "1"]
+      },
+      "menus":{
+         "Eat":{
+            "Bananas":{
+               "Full-Wolf":["set", "3"]
+            },
+            "Apples":{
+               "Full-Wolf":["set", "3"]
+            }
+       }
+      }
+   },
+
+   "Wolf-Happy-Ending":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Full-Wolf": ["more than", "4"],
+         "Scene-Number": ["is", "2"]
+      },
+      "postconditions":{
+         "Happy-Wolf": ["is", "5"],
+         "Scene-Number": ["add", "1"]
+      },
+      "menus":{
+      },
+      "end scene": 1
+   },
+
+   "Wolf-Neutral-Ending":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Full-Wolf": ["more than", "2"],
+         "Scene-Number": ["is", "2"]
+      },
+      "postconditions":{
+         "Happy-Wolf": ["is", "3"],
+         "Scene-Number": ["add", "1"]
+      },
+      "menus":{
+      },
+      "end scene": 1
+   },
+
+   "Wolf-Sad-Ending":{
+      "player count":1,
+      "player":["Wolf"],
+      "preconditions":{
+         "Full-Wolf": ["less than", "2"],
+         "Scene-Number": ["is", "2"]
+      },
+      "postconditions":{
+         "Happy-Wolf": ["is", "0"],
+         "Scene-Number": ["add", "1"]
+      },
+      "menus":{
+      },
+      "end scene": 1
+   }
+}
