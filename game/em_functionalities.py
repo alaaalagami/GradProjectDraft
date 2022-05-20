@@ -83,6 +83,7 @@ class GameState:
         self.current_state = current_state
         self.players = players
         self.choices_made = []
+        self.choice_entries = {}
         self.scenes_list = scenes_list
         self.plot = plot
         self.players_data = players_data
@@ -366,6 +367,7 @@ def get_next_scene(player_id, gamestate):
     next_scene = highest_scored_scenes_list[scene_index]
     return handle_multiplayer_scenes(player_id, gamestate, next_scene, waiting_player)
 
+
 ############################################## PLAYER HELPERS ################################################
 def set_player_role(player_id, role, gamestate):
     print('Player', player_id, 'set to role', role)
@@ -394,3 +396,9 @@ def all_players_ended(gamestate):
         if not player.ended():
             return False
     return True
+
+############################################## COLLABORATIVE FILTERING ################################################
+
+def parse_entry(label, menu_label, choice):
+    return '_'.join([label, menu_label, choice])
+

@@ -87,7 +87,8 @@ async def start(websocket):
     # Initialize an Experience Manager, the set of WebSocket connections
     # receiving events from this game, and secret access token.
     game = ExperienceManager(state_file = "initial_state.json", \
-        scene_file = "scenes.json", plot_file = "plot.json", players_file= "players_data.json")
+        scene_file = "scenes.json", plot_file = "plot.json", players_file= "players_data.json", 
+        choices_file="player_choices_sheet.csv")
     connected = [websocket]
 
     join_key = "".join(random.choice(string.ascii_letters) for _ in range(4)).upper()

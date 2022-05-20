@@ -1,16 +1,23 @@
 from em_functionalities import *
 from em_search import EM_Searcher
+from probability_calculator import ProbabilityCalculator
 
 class ExperienceManager():
 
-    def __init__(self, state_file, scene_file, plot_file, players_file):
+    def __init__(self, state_file, scene_file, plot_file, players_file, choices_file):
         self.gamestate = get_initial_gamestate(state_file, scene_file, plot_file, players_file)
+        self.probability_calculator = ProbabilityCalculator(choices_file)
         print("Created Experience Manager Instance")
     
 
    ############################################## UPDATING STATE ################################################
 
     def apply_choice_postconditions(self, label, menu_label, choice):
+        valid_choices = self.validate_choices(label, menu_label)
+        self.gamestate.choice_entries[parse_entry(label, menu_label, choice)] = 1
+        for other_choice in valid_choices:
+            if other_choice != choice:
+                self.gamestate.choice_entries[parse_entry(label, menu_label, other_choice)] = 0
         apply_choice_postconditions(label, menu_label, choice, self.gamestate)
 
     def apply_scene_postconditions(self, label, players_id):
@@ -60,7 +67,6 @@ class ExperienceManager():
         
         def evaluate_scene(solutions):
             possible_next_scene_labels = list(set([sol[0][0][1][1] for sol in solutions]))
-            print('poss', possible_next_scene_labels)
             labels_and_errors = []
             for label in possible_next_scene_labels:
                 label_solutions = [(sol[0][1:], sol[1]) for sol in solutions if sol[0][0][1][1] == label]
@@ -73,31 +79,30 @@ class ExperienceManager():
                 if len(p0_solutions) > 0:
                     if  p0_solutions[0][0][0][0] == 'menu':
                         total_error += evaluate_menu(p0_solutions)
-                        print('1Evaluated menu', evaluate_menu(p0_solutions))
                         if evaluate_menu(p0_solutions) == 4.0:
                             print(p0_solutions)
                     else:
                         total_error += evaluate_scene(p0_solutions)[1]
-#                        print('Evaluated scene', evaluate_scene(p0_solutions)[1])
 
                 if len(p1_solutions) > 0:
                    if p1_solutions[0][0][0][0] == 'menu':
                        total_error += evaluate_menu(p1_solutions)
                    else:
                        total_error += evaluate_scene(p1_solutions)[1]
-#                       print('Evaluated scene', evaluate_scene(p1_solutions)[1])
 
                 total_error /= (len(p0_solutions) > 0) + (len(p1_solutions) > 0)
                 labels_and_errors.append((label, total_error))
             
             print('labels and errors', labels_and_errors)
             least_error_label = min(labels_and_errors, key=lambda x: x[1])
-#            print('least', least_error_label)
             return least_error_label
         
         def evaluate_menu(solutions):
             possible_choices = list(set([sol[0][0][1][2] for sol in solutions]))
             total_error = 0
+            scene_label = solutions[0][0][0][1][0]
+            menu_label = solutions[0][0][0][1][1]
+            choices_and_probs = self.probability_calculator.calculate(self.gamestate.choice_entries, scene_label, menu_label, possible_choices)
             for choice in possible_choices:
                 additional_error = 0
                 choice_solutions = [(sol[0][1:], sol[1]) for sol in solutions if sol[0][0][1][2] == choice]
@@ -113,19 +118,15 @@ class ExperienceManager():
                         additional_error += evaluate_menu(p0_solutions)
                     else:
                         additional_error += evaluate_scene(p0_solutions)[1]
-#                        print('Evaluated scene', evaluate_scene(p0_solutions)[1])
 
                 if len(p1_solutions) > 0:
                     if p1_solutions[0][0][0][0] == 'menu':
                         additional_error += evaluate_menu(p1_solutions)
                     else:
                         additional_error += evaluate_scene(p1_solutions)[1]
-#                        print('Evaluated scene', evaluate_scene(p1_solutions)[1])
-                total_error += additional_error / ((len(p0_solutions) > 0) + (len(p1_solutions) > 0))
-                print('-----------added to error', additional_error / ((len(p0_solutions) > 0) + (len(p1_solutions) > 0)))
 
-            print('possible choices', len(possible_choices))
-            total_error *= 1/len(possible_choices) # Probability adapting happens here
+                total_error += (additional_error / ((len(p0_solutions) > 0) + (len(p1_solutions) > 0))) * choices_and_probs[choice]
+
             return total_error
                             
         searcher = EM_Searcher()
@@ -140,9 +141,6 @@ class ExperienceManager():
             if first_action[1][0][0] != player_id:
                 continue
             viable_solutions.append(sol)
-
-        for sol in viable_solutions:
-            print(sol)
         
         least_error_label = evaluate_scene(viable_solutions)
 
@@ -162,7 +160,6 @@ class ExperienceManager():
 
         viable_scenes_list = get_viable_scenes(player_id, self.gamestate)
 
-        print(viable_scenes_list)
         # If there are no suitable scenes, then the player should wait for other players to change the state
         # and check again later if there are any viable scenes
         if len(viable_scenes_list) == 0:
@@ -171,6 +168,9 @@ class ExperienceManager():
 
         next_scene = self.plan_next_scene(player_id)
         return handle_multiplayer_scenes(player_id, self.gamestate, next_scene, waiting_player)
+    
+    def end_narrative(self):
+        self.probability_calculator.add_entry(self.gamestate.choice_entries)
 
     
     ############################################## PLAYER HELPERS ################################################
