@@ -66,7 +66,6 @@ class ExperienceManager():
             return group_0, group_1
         
         def evaluate_scene(solutions):
-            print('sols', solutions)
             possible_next_scene_labels = list(set([sol[0][0][1][1] for sol in solutions]))
             labels_and_errors = []
             for label in possible_next_scene_labels:
@@ -142,7 +141,6 @@ class ExperienceManager():
             if player_id not in first_action[1][0]:
                 continue
             viable_solutions.append(sol)
-        print('viable', viable_solutions)
         least_error_label = evaluate_scene(viable_solutions)
 
         return least_error_label[0]

@@ -167,9 +167,9 @@ def get_player_scenes(player_id, gamestate):
 
 def test_preconditions(player_id, label, gamestate):
     preconditions = gamestate.scenes_list[label]["preconditions"]
-    scene_number = gamestate.scenes_list[label]["scene number"]
+    scene_numbers = gamestate.scenes_list[label]["scene number"]
     state = gamestate.current_state
-    if str(scene_number) != '*' and int(scene_number)-1 != gamestate.players[player_id].get_beat_count():
+    if str(scene_numbers[0]) != '*' and gamestate.players[player_id].get_beat_count() not in [int(n)-1 for n in scene_numbers]:
         return False
     for key in preconditions:
      try:
@@ -219,9 +219,10 @@ def get_error(label, player_id, gamestate):
     for i in range(len(features)):
         feature = features[i]
         objective = objectives[progression_features.index(feature)]
+        if str(objective) == '*':
+            continue
         weight = weights[i]
         error += weight * abs(objective - float(current_values[feature]))
-        print(feature, current_values[feature], objective, error)
     
     return error
 
