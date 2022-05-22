@@ -34,11 +34,11 @@ class Player:
         return True
     
     def wait(self):
-#        print('Changed player', self.id, 'state to waiting')
+        print('Changed player', self.id, 'state to waiting')
         self.state = PlayerState.WAITING
     
     def release(self):
-#        print('Changed player', self.id, 'state to ready')
+        print('Changed player', self.id, 'state to ready')
         self.state = PlayerState.READY
     
     def end(self):
@@ -167,9 +167,9 @@ def get_player_scenes(player_id, gamestate):
 
 def test_preconditions(player_id, label, gamestate):
     preconditions = gamestate.scenes_list[label]["preconditions"]
-    scene_number = int(gamestate.scenes_list[label]["scene number"])
+    scene_number = gamestate.scenes_list[label]["scene number"]
     state = gamestate.current_state
-    if scene_number-1 != gamestate.players[player_id].get_beat_count():
+    if str(scene_number) != '*' and int(scene_number)-1 != gamestate.players[player_id].get_beat_count():
         return False
     for key in preconditions:
      try:
@@ -200,6 +200,7 @@ def get_error(label, player_id, gamestate):
         weights = gamestate.plot["multi player beat weights"]
     
     objectives = progression[1]
+    
     current_values_og = {}
     for feature in features:
         current_values_og[feature] = gamestate.current_state[feature]
@@ -220,6 +221,7 @@ def get_error(label, player_id, gamestate):
         objective = objectives[progression_features.index(feature)]
         weight = weights[i]
         error += weight * abs(objective - float(current_values[feature]))
+        print(feature, current_values[feature], objective, error)
     
     return error
 
@@ -232,8 +234,10 @@ def evaluate_beats(viable_scenes, player_id, gamestate):
 def gate(player_id, gamestate):
     player = gamestate.players[player_id]
     player_beat = player.get_beat_count()
-    other_player_beat = gamestate.players[1 - player_id].get_beat_count()
-    if other_player_beat > player_beat:
+    other_player = gamestate.players[1 - player_id]
+    other_player_beat = other_player.get_beat_count()
+    print('numbers', player_beat, other_player_beat)
+    if other_player_beat > player_beat or other_player.ended():
         return False
     if other_player_beat == player_beat and is_other_player_waiting(player_id, gamestate):
         return False
@@ -257,6 +261,11 @@ def handle_edge_cases(player_id, gamestate):
     elif player.ended():
         return [player_id], 'end_scene'
 
+    # Gate every "gate_window" number of scenes, where gate_window is specified by the author
+    # Gating ensure no player will be starved
+    if player.get_beat_count() % gamestate.gate_window == 0 and gate(player_id, gamestate):
+        return [player_id], 'wait_scene'
+
     # Checking for waiting players assumes only 2 players. Needs to be modified for generalized version.
     waiting_player = is_other_player_waiting(player_id, gamestate)
 
@@ -265,11 +274,6 @@ def handle_edge_cases(player_id, gamestate):
     # is still valid after the state change done by other players.
     if waiting_player is not None:
         waiting_player.release()
-
-    # Gate every "gate_window" number of scenes, where gate_window is specified by the author
-    # Gating ensure no player will be starved
-    if player.get_beat_count() % gamestate.gate_window == 0 and gate(player_id, gamestate):
-        return [player_id], 'wait_scene'
 
     # If there is a scene that must be played after the current one, show it (usually a multiplayer scene picked
     # by other players)
@@ -325,15 +329,26 @@ def get_all_next_scenes(player_id, gamestate):
         return handled
 
     viable_scenes_list = get_viable_scenes(player_id, gamestate)
-
+    
+    print('bawsal hna', viable_scenes_list)
     # If there are no suitable scenes, then the player should wait for other players to change the state
     # and check again later if there are any viable scenes
     if len(viable_scenes_list) == 0:
         player.wait()
         return [player_id], 'wait_scene'
-    
 
-    return [([player_id], scene) for scene in viable_scenes_list]
+    if gamestate.scenes_list[viable_scenes_list[0]]['player count'] > 1: # The list contains multiplayer scenes
+        player = gamestate.players[player_id]
+        player_beat = player.get_beat_count()
+        other_player = gamestate.players[1 - player_id]
+        other_player_beat = other_player.get_beat_count()
+        if player_beat != other_player_beat:
+            return [player_id], 'wait_scene'
+        else:
+            other_player.release()
+            return [([0, 1], scene) for scene in viable_scenes_list]
+    else:
+        return [([player_id], scene) for scene in viable_scenes_list]
 
 def get_next_scene(player_id, gamestate):
     
@@ -390,6 +405,7 @@ def is_other_player_waiting(player_id, gamestate):
         if player.get_id() != player_id and player.is_waiting():
             return player
     return None
+
 
 def all_players_ended(gamestate):
     for player in gamestate.players:
